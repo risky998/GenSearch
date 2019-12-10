@@ -71,7 +71,7 @@ def viterbi(obs, trans_probs, noncod_emiss, coding_emiss_1, coding_emiss_2, codi
 
 
             #we want to set the values in our traceback matrix
-            if (previous_coding+trans_probs['C']['C'] > previous_low +trans_probs['l']['h']):
+            if (previous_coding+trans_probs['C']['C'] > previous_non +trans_probs['l']['h']):
                 traceback_matrix[0][j] = 1
             else:
                 traceback_matrix[0][j] = 2
