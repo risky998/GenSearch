@@ -40,6 +40,59 @@ def read_fasta(filename):
     return s
 
 
+
+def viterbi(obs, trans_probs, noncod_emiss, coding_emiss_1, coding_emiss_2, coding_emiss_3, init_probs):
+    #we will first set up a matrix that two rows such that the first row represents the coding state C and the second row 
+    #represents a non coding state N 
+
+
+    matrix = np.zeros((2, len(obs)))
+    traceback_matrix = np.zeros((2, len(obs)))
+
+    #We then code the initial probabilties
+    #we want to track the position in the codon - this will help during later calculations of emission probabilties. 
+    codon_pos = 1
+    matrix[0][0] = np.log(0.9) + coding_emiss_1[obs[0]]
+    codon_pos = 2
+    matrix[1][0] = np.log(0.1) + noncod_emiss[obs[0]]
+
+    #Having set these probabilities, we want to iterate over the rest of the sequence   
+    
+    for j in range(1, len(obs)):
+        base = obs[j]
+        previous_coding = matrix[0][j-1]
+        previous_non  = matrix[1][j-1]
+
+        #This helps me update the score and update the traceback matrix at the same time to backtrack later
+
+        if codon_pos == 1:
+            matrix[0][j] = coding_emiss_1[base] + max(previous_coding+trans_probs['C']['C'], previous_non +trans_probs['N']['C'])
+            codon_pos += 1
+
+
+            #we want to set the values in our traceback matrix
+            if (previous_coding+trans_probs['C']['C'] > previous_low +trans_probs['l']['h']):
+                traceback_matrix[0][j] = 1
+            else:
+                traceback_matrix[0][j] = 2
+        
+
+
+        elif codon_pos == 2:
+            matrix[0][j] = coding_emiss_2[obs[j-1]][base] + max(previous_coding+trans_probs['C']['C'], previous_non +trans_probs['N']['C'])
+            codon_pos = 3
+
+
+        elif codon_pos == 3:
+            matrix[0][j] = coding_emiss_3[obs[j-2]][base] + max(previous_coding+trans_probs['C']['C'], previous_non +trans_probs['N']['C'])
+            codon_pos = 1
+    
+
+
+
+
+
+
 def main():
     parser = argparse.ArgumentParser(
         description='Parse a sequence into coding and non coding regions')
@@ -61,8 +114,6 @@ def main():
     coding_emission_1 = {
         'A': np.log(0.245), 'C': np.log(0.245), 'G': np.log(0.36), 'T': np.log(0.147)
     }
-
-
 
     #for coding_emission_2, what we want is the probability of a second base appearing, GIVEN that we already know the first base
     #so for C, this will be the probabilty of all AC_ codons over the probability of all A _ _ codons (i.e x/0.245)
