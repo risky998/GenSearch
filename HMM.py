@@ -30,7 +30,7 @@ Arguments:
 """
 
 import argparse 
-import np
+import numpy as np
 
 def read_fasta(filename):
     with open(filename, "r") as f:
@@ -41,7 +41,7 @@ def read_fasta(filename):
 
 
 
-def viterbi(obs, trans_probs, noncod_emiss, coding_emiss_1, coding_emiss_2, coding_emiss_3, init_probs):
+def viterbi(obs, init_probs, noncod_emiss, coding_emiss_1, coding_emiss_2, coding_emiss_3, trans_probs):
     #we will first set up a matrix that two rows such that the first row represents the coding state C and the second row 
     #represents a non coding state N 
 
@@ -65,29 +65,83 @@ def viterbi(obs, trans_probs, noncod_emiss, coding_emiss_1, coding_emiss_2, codi
 
         #This helps me update the score and update the traceback matrix at the same time to backtrack later
 
+        #If we are at the first base in the codon
         if codon_pos == 1:
             matrix[0][j] = coding_emiss_1[base] + max(previous_coding+trans_probs['C']['C'], previous_non +trans_probs['N']['C'])
             codon_pos += 1
-
-
-            #we want to set the values in our traceback matrix
-            if (previous_coding+trans_probs['C']['C'] > previous_non +trans_probs['l']['h']):
-                traceback_matrix[0][j] = 1
-            else:
-                traceback_matrix[0][j] = 2
         
-
-
+        #If we are at the second base in the codon 
         elif codon_pos == 2:
             matrix[0][j] = coding_emiss_2[obs[j-1]][base] + max(previous_coding+trans_probs['C']['C'], previous_non +trans_probs['N']['C'])
             codon_pos = 3
 
-
+        #If we are at the third base in the codon 
         elif codon_pos == 3:
             matrix[0][j] = coding_emiss_3[obs[j-2]][base] + max(previous_coding+trans_probs['C']['C'], previous_non +trans_probs['N']['C'])
             codon_pos = 1
-    
 
+        #Set the correct value in the traceback matrix
+        if (previous_coding + +trans_probs['C']['C'] > previous_non +trans_probs['N']['C']):
+            traceback_matrix[0][j] = 1
+        else:
+            traceback_matrix[0][j] = 2
+
+
+        #now code for tracking the non coding regions probabilities in our scoring matrix 
+
+        matrix [1][j] = noncod_emiss[base] + max(previous_non+trans_probs['N']['N'], previous_coding +trans_probs['C']['N'])
+        if (previous_non+trans_probs['N']['N'] > previous_coding +trans_probs['C']['N']):
+            traceback_matrix[1][j] = 2
+        else:
+            traceback_matrix[1][j] =  1
+
+    
+    #Now we want to loop back through our traceback matrix that we have been building and identify 
+    #the path with the maximum likelihood. 
+
+    p = max(matrix[1][len(obs)-1], matrix[0][len(obs)-1])
+
+    traceback_seq = ''
+
+    if p == matrix[0][len(obs)-1]:
+        traceback_seq += 'C'
+        if traceback_matrix[0][len(obs)-1] == 1:
+            traceback_seq += 'C'
+        elif traceback_matrix[0][len(obs)-1] == 2:
+            traceback_seq += 'N'
+    else:
+        traceback_seq += 'N'
+        if traceback_matrix[1][len(obs)-1] == 1:
+            traceback_seq += 'C'
+        elif traceback_matrix[1][len(obs)-1] == 2:
+            traceback_seq += 'N'
+
+    k = len(obs) - 2
+    while k!= 0:
+
+        if traceback_seq[-1] == 'C':
+            if traceback_matrix[0][k] == 1:
+                traceback_seq += 'C'
+            elif traceback_matrix[0][k] == 2:
+                traceback_seq += 'N'
+
+        elif traceback_seq[-1] == 'N':
+            if traceback_matrix[1][k] == 1:
+                traceback_seq += 'C'
+            elif traceback_matrix[1][k] == 2:
+                traceback_seq += 'N'
+        k-=1
+
+
+    traceback_seq = traceback_seq[::-1]
+
+    l = []
+
+    for element in traceback_seq:
+        l.append(element)
+
+    print(l)
+    return l, p 
 
 
 
@@ -97,12 +151,17 @@ def main():
     parser = argparse.ArgumentParser(
         description='Parse a sequence into coding and non coding regions')
     parser.add_argument('-f', action="store", dest="f", type=str, required=True)
-    parser.add_argument('-out', action="store", dest="out", type=str, required=True)
+    # parser.add_argument('-out', action="store", dest="out", type=str, required=True)
 
     args = parser.parse_args()
     fasta_file = args.f
-    intervals_file = args.out
+    # intervals_file = args.out
 
+    #We read the FASTA file to obtain our required sequence
+    obs_sequence = read_fasta(fasta_file)
+
+
+    #we set up the initial probabilities
     initial_probabilities = {'n': np.log(0.9), 'c': np.log(0.1)}
 
 
@@ -132,4 +191,11 @@ def main():
         'T': {'A': np.log(0.017/0.147), 'C': np.log(0.048/0.147), 'G': np.log(0.034/0.147), 'T': np.log(0.048/0.147)}
     }
 
-    transition_probabilities = {}
+    transition_probabilities = {'C': {'C':0.9, 'N':0.1}, 'N': {'C':0.1, 'N':0.9}}
+
+
+    viterbi(obs_sequence,initial_probabilities,non_coding_emission,coding_emission_1, coding_emission_2,coding_emission_3,transition_probabilities)
+
+
+if __name__ == "__main__":
+    main()
