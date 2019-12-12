@@ -86,6 +86,8 @@ def viterbi(obs, init_probs, noncod_emiss, coding_emiss_1, coding_emiss_2, codin
         else:
             traceback_matrix[0][j] = 2
 
+        
+
 
         #now code for tracking the non coding regions probabilities in our scoring matrix 
 
