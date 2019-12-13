@@ -32,6 +32,13 @@ Arguments:
 import argparse 
 import numpy as np
 
+
+'''
+A helper function to read and parse a FASTA file to give us appropriate data to work with. 
+
+Arguments: 
+    filename: The name of the FASTA file that is to be parsed. 
+'''
 def read_fasta(filename):
     with open(filename, "r") as f:
         s = ""
@@ -39,13 +46,19 @@ def read_fasta(filename):
             s += l.strip()
     return s
 
+'''
+The viterbi algorithm finds and returns the maximum likelihood path through a given sequence
 
+Arguments: 
+    obs: The sequence to be analyzed 
+    init_probs: A dictionary of initial probabilties that represents the chance of the HMM starting in either of our two states
+    
+'''
 
 def viterbi(obs, init_probs, noncod_emiss, coding_emiss_1, coding_emiss_2, coding_emiss_3, trans_probs):
+
     #we will first set up a matrix that two rows such that the first row represents the coding state C and the second row 
     #represents a non coding state N 
-
-
     matrix = np.zeros((2, len(obs)))
     traceback_matrix = np.zeros((2, len(obs)))
 
@@ -144,9 +157,6 @@ def viterbi(obs, init_probs, noncod_emiss, coding_emiss_1, coding_emiss_2, codin
 
     print(l)
     return l, p 
-
-
-
 
 
 def main():
