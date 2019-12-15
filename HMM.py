@@ -43,7 +43,9 @@ def read_fasta(filename):
     with open(filename, "r") as f:
         s = ""
         for l in f.readlines()[1:]:
-            s += l.strip()
+            if l[0] == 'A' or l[0] == 'C' or l[0] == 'G' or l[0] == 'T':
+                if set(l)  == {'C', 'A', 'T', '\n', 'G'}:
+                    s += l.strip()
     return s
 
 '''
