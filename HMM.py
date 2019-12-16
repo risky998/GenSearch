@@ -151,11 +151,18 @@ def viterbi(obs, init_probs, noncod_emiss, coding_emiss_1, coding_emiss_2, codin
     l = []
 
     #Create a list that is easier to work with. 
+    count_n = 0
+    count_c = 0
     for element in traceback_seq:
+        if element == 'N':
+            count_n +=1
+        elif element == "C":
+            count_c +=1
+        
         l.append(element)
 
     print(l)
-    return l, p 
+    return l, p, count_c, count_n
 
 ''' 
 This function takes in the viterbi output and return the intervals that are coding regions 
@@ -242,13 +249,15 @@ def main():
     transition_probabilities = {'C': {'C':41/42, 'N':1/42}, 'N': {'C':0.1, 'N':0.9}}
 
     #we call our viterbi sequence
-    sequence, p = viterbi(obs_sequence,initial_probabilities,non_coding_emission,coding_emission_1, coding_emission_2,coding_emission_3,transition_probabilities)
+    sequence, p, count_c, count_n = viterbi(obs_sequence,initial_probabilities,non_coding_emission,coding_emission_1, coding_emission_2,coding_emission_3,transition_probabilities)
     print(sequence)
 
     intervals = find_intervals(sequence)
     with open(intervals_file, "w") as f:
         f.write("\n".join([("(%d,%d)" % (start, end)) for (start, end) in intervals]))
         f.write("\n")
+    
+    print("Coding Region Percentage: " + str(count_c/(count_c+count_n)*100))
     print("Viterbi probability: {:.2f}".format(p))
 
 
