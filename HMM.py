@@ -49,6 +49,27 @@ def read_fasta(filename):
                     s += l.strip()
     return s
 
+
+"""
+A Helper function to obtain the reverse complement of a given sequence
+"""
+def rev_comp(seq):
+    reverse = ''
+    i = len(seq)-1
+    while(i>=0):
+        if seq[i] == 'A':
+            reverse+='T'
+            i -=1
+        elif seq[i] == 'T':
+            reverse += 'A'
+            i-=1
+        elif seq[i] == 'C':
+            reverse += 'G'
+            i-=1
+        elif seq[i] == 'G':
+            reverse += 'C'
+            i-=1
+    return reverse
 '''
 The viterbi algorithm finds and returns the maximum likelihood path through a given sequence
 
@@ -216,7 +237,7 @@ def intervals_parser():
         nums = []
         for l in f.readlines():
             line = literal_eval(l)
-            nums.append((int(line[1])-int(line[0]))/3)
+            nums.append(((int(line[1])-int(line[0])))/3)
         count = 0
         for num in nums:
             count += num
@@ -235,6 +256,7 @@ def main():
     intervals_file = args.out
 
     obs_sequence = read_fasta(fasta_file)
+    reverse = rev_comp(obs_sequence)
 
 
     #we set up the initial probabilities according the expected value gene percentage in E.Coli 
@@ -275,14 +297,19 @@ def main():
 
     #we call our viterbi sequence
     sequence, p, count_c, count_n = viterbi(obs_sequence,initial_probabilities,non_coding_emission,coding_emission_1, coding_emission_2,coding_emission_3,transition_probabilities)
+    print("Repeating process for complementary sequence...")
+    complementary, p, count_c_2, count_n_2 = viterbi(reverse,initial_probabilities,non_coding_emission,coding_emission_1, coding_emission_2,coding_emission_3,transition_probabilities)
     print(sequence)
 
     intervals = find_intervals(sequence)
+    second_intervals = find_intervals(complementary)
+    final_intervals = intervals+second_intervals
+    final_intervals = sorted(final_intervals, key=lambda x: x[0])
     with open(intervals_file, "w") as f:
-        f.write("\n".join([("(%d,%d)" % (start, end)) for (start, end) in intervals]))
+        f.write("\n".join([("(%d,%d)" % (start, end)) for (start, end) in final_intervals]))
         f.write("\n")
     
-    print("Coding Region Percentage: " + str(count_c/(count_c+count_n)*100))
+    print("Coding Region Percentage: " + str(((count_c+count_c_2)/(count_c+count_c_2+count_n+count_n_2))*100))
     print("Viterbi probability: {:.2f}".format(p))
 
     average_len = intervals_parser()
