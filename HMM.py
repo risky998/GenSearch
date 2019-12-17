@@ -31,6 +31,7 @@ Arguments:
 
 import argparse 
 import numpy as np
+from ast import literal_eval
 
 
 '''
@@ -64,6 +65,7 @@ Arguments:
 
 def viterbi(obs, init_probs, noncod_emiss, coding_emiss_1, coding_emiss_2, coding_emiss_3, trans_probs):
 
+    print("Beginning Viterbi Algorithm...")
     #Create a dynamic programming score and traceback matrix using numpy
     matrix = np.zeros((2, len(obs)))
     traceback_matrix = np.zeros((2, len(obs)))
@@ -74,6 +76,8 @@ def viterbi(obs, init_probs, noncod_emiss, coding_emiss_1, coding_emiss_2, codin
     codon_pos = 2
     matrix[1][0] = np.log(0.1) + noncod_emiss[obs[0]]
 
+    print("Iterating over the given sequence...")
+    print("This might take a minute!")
     #Iterate over the rest of the observed sequence    
     for j in range(1, len(obs)):
         base = obs[j]
@@ -109,6 +113,8 @@ def viterbi(obs, init_probs, noncod_emiss, coding_emiss_1, coding_emiss_2, codin
             traceback_matrix[1][j] =  1
 
     
+    print("Building traceback sequence...")
+    print("This might take a few seconds!")
     #Use traceback matrix to find maximum likelihood path
     p = max(matrix[1][len(obs)-1], matrix[0][len(obs)-1])
 
@@ -197,7 +203,26 @@ def find_intervals(sequence):
             current_end = len(sequence)
         list.append((current_start+1, current_end))
 
+    print('Intervals printed to intervals.txt file')
     return list
+
+"""
+This function is a helper function that parses through the created intervals.txt file and helps
+to indentify the average length of the genes
+"""
+
+def intervals_parser(): 
+    with open('intervals.txt', "r") as f:
+        nums = []
+        for l in f.readlines():
+            line = literal_eval(l)
+            nums.append((int(line[1])-int(line[0]))/3)
+        count = 0
+        for num in nums:
+            count += num
+    return count/len(nums)
+
+
 
 def main():
     parser = argparse.ArgumentParser(
@@ -259,6 +284,11 @@ def main():
     
     print("Coding Region Percentage: " + str(count_c/(count_c+count_n)*100))
     print("Viterbi probability: {:.2f}".format(p))
+
+    average_len = intervals_parser()
+    print("Average Gene Length:" + str(average_len))
+
+
 
 
 if __name__ == "__main__":
