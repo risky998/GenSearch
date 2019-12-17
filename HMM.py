@@ -288,8 +288,5 @@ def main():
     average_len = intervals_parser()
     print("Average Gene Length:" + str(average_len))
 
-
-
-
 if __name__ == "__main__":
     main()
