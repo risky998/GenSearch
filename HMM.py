@@ -70,7 +70,9 @@ def rev_comp(seq):
             reverse += 'C'
             i-=1
     return reverse
+
 '''
+
 The viterbi algorithm finds and returns the maximum likelihood path through a given sequence
 
 Arguments: 
@@ -302,8 +304,14 @@ def main():
     print(sequence)
 
     intervals = find_intervals(sequence)
+
+    #repeat running on the complemantary sequence
     second_intervals = find_intervals(complementary)
+
+    #adding the two lists of intervals together
     final_intervals = intervals+second_intervals
+
+    #use lamdas to sort the tuples in the required order
     final_intervals = sorted(final_intervals, key=lambda x: x[0])
     with open(intervals_file, "w") as f:
         f.write("\n".join([("(%d,%d)" % (start, end)) for (start, end) in final_intervals]))
