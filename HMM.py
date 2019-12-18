@@ -317,9 +317,12 @@ def main():
         f.write("\n".join([("(%d,%d)" % (start, end)) for (start, end) in final_intervals]))
         f.write("\n")
     
+    #print out the overall coding region percentage as well as the viterbi prob
     print("Coding Region Percentage: " + str(((count_c+count_c_2)/(count_c+count_c_2+count_n+count_n_2))*100))
     print("Viterbi probability: {:.2f}".format(p))
 
+
+    #call out average len function on the new intervals.txt file that has been created to get average length
     average_len = intervals_parser()
     print("Average Gene Length:" + str(average_len))
 
