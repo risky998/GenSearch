@@ -1,32 +1,11 @@
 #!/usr/bin/env python3
 
-
-#Hidden Markov Model to find the most likely state path through E. coli DNA Sequence
-
-
-"""
-we want the probability of an emission of a base. if its the first in the triplet, we go 
-by sum of the table. if its the second we calculate based on the first
-if its the third we calculate based on the first again (or the second)
-then we go back to the start. 
-we should keep a counter of whether the base is the first, second or third in thesequenc 
-
-if this is a non coding region it doesnt matter. 
-
-so for example in coding state: chance of emitting A as first base is the sum prob of all the codons starting A
-then chance of emitting C as the second base in triplet is different for each first base. 
-We go back and check the previous one. if it is A for example, chance of getting C is chance of an AC_ codon out of all
-codons starting with A. 
-"""
-
-
 """
 This program contains a script to find the most likely state path through
 sequences of E.coli DNA, thus helping us identify coding and non coding regions. 
 
 Arguments: 
     -out: file to which the intervals should be output to, line by line. 
-
 """
 
 import argparse 
@@ -48,7 +27,6 @@ def read_fasta(filename):
                 if set(l)  == {'C', 'A', 'T', '\n', 'G'}:
                     s += l.strip()
     return s
-
 
 """
 A Helper function to obtain the reverse complement of a given sequence
@@ -83,7 +61,6 @@ Arguments:
     coding_emiss_2: A dictionary that represents the probabilty of a base emission given that the base is the second in the sequence
     coding_emiss_2: A dictionary that represents the probabilty of a base emission given that the base is the third in the sequence
     trans_prob: A dictionary that represents the transition probabilties between the coding and non-coding states
-
 '''
 
 def viterbi(obs, init_probs, noncod_emiss, coding_emiss_1, coding_emiss_2, coding_emiss_3, trans_probs):
