@@ -238,7 +238,7 @@ def main():
     reverse = rev_comp(obs_sequence)
 
 
-    #we set up the initial probabilities according the expected value gene percentage in E.Coli 
+    #Initial Probabilities According to the Expected Gene Percentage in E.Coli
     initial_probabilities = {'n': np.log(0.9), 'c': np.log(0.1)}
 
     #For non coding region emissions, we use relative probabilities of the 4 bases
